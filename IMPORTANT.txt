@@ -1,0 +1,3 @@
+Download pytesseract completely here
+https://excellmedia.dl.sourceforge.net/project/tesseract-ocr-alt/tesseract-ocr-setup-3.02.02.exe
+If you dont download that this wont work
