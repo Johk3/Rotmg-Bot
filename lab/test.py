@@ -16,21 +16,30 @@ from lab.tradeanalyzer import Main
 from collections import Counter
 import os, shutil
 
-with mss.mss() as sct:
-    monitor = {"top": 480, "left": 1160, "width": 100, "height": 40}
-    img = sct.grab(monitor)
-    mss.tools.to_png(img.rgb, img.size, output="tradeconfirmation.png")
-    im = Image.open("tradeconfirmation.png")
-    pix = im.load()
-    for i in range(im.size[0]):
-        if i >= 39:
-            color = pix[i, 39]
-            print(color)
-            if color[0] == 113 and color[1] == 139 and color[2] == 80:
-                print(True)
-        else:
-            color = pix[i, i]
-            print(color)
-            if color[0] == 113 and color[1] == 139 and color[2] == 80:
-                print(True)
+# with mss.mss() as sct:
+#     monitor = {"top": 480, "left": 1160, "width": 100, "height": 40}
+#     img = sct.grab(monitor)
+#     mss.tools.to_png(img.rgb, img.size, output="tradeconfirmation.png")
+#     im = Image.open("tradeconfirmation.png")
+#     pix = im.load()
+#     for i in range(im.size[0]):
+#         if i >= 39:
+#             color = pix[i, 39]
+#             print(color)
+#             if color[0] == 113 and color[1] == 139 and color[2] == 80:
+#                 print(True)
+#         else:
+#             color = pix[i, i]
+#             print(color)
+#             if color[0] == 113 and color[1] == 139 and color[2] == 80:
+#                 print(True)
+#
+mouseX = 1161
+mousex = 1312
+mouseY = 685
+offsetX = 13
+offsetY = 10
 
+pyautogui.moveTo(mouseX, mouseY)
+pyautogui.moveTo(mousex - 100, mouseY - offsetY, 1)
+pyautogui.click(1325 - 100, 675)
