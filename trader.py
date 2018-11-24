@@ -12,6 +12,49 @@ import keyboard
 from random import randint
 import matplotlib.pylab as plt
 from PIL import Image
+from lab.tradeanalyzer import Main
+from collections import Counter
+import os, shutil
+
+def doublecheck():
+    tradein_potions = []
+    while 1:
+        sleep(2)
+        with mss.mss() as sct:
+            monitor = {"top": 520, "left": 1170, "width": 180, "height": 135}
+            img = sct.grab(monitor)
+            mss.tools.to_png(img.rgb, img.size, output="lab/realtrade.png")
+            engine = Main()
+            engine.run("lab/potion.png", "lab/realtrade.png")
+            f = []
+            for (dirpath, dirnames, filenames) in walk("lab/trade_potions"):
+                f.extend(filenames)
+                break
+            if f:
+                for file in f:
+                    output = engine.scan("lab/trade_potions/{}".format(file))
+                    print("Trade in --> {}".format(output))
+                    tradein_potions.append(output)
+            if output:
+                return tradein_potions
+
+def accept():
+    with mss.mss() as sct:
+        monitor = {"top": 480, "left": 1160, "width": 100, "height": 40}
+        img = sct.grab(monitor)
+        mss.tools.to_png(img.rgb, img.size, output="tradeconfirmation.png")
+        im = Image.open("tradeconfirmation.png")
+        pix = im.load()
+        for i in range(im.size[0]):
+            if i >= 39:
+                color = pix[i, 39]
+                if color[0] == 113 and color[1] == 139 and color[2] == 80:
+                    return True
+            else:
+                color = pix[i, i]
+                if color[0] == 113 and color[1] == 139 and color[2] == 80:
+                    return True
+        return False
 
 def find_trade(file):
     img = Image.open(file)
@@ -33,6 +76,9 @@ def find_trade(file):
         return None
 
 def analyzetrade():
+    tradein_potions = []
+    check = True
+    output = None
     with mss.mss() as sct:
         monitor = {"top": 662, "left": 1272, "width": 70, "height": 34}
         img = sct.grab(monitor)
@@ -47,7 +93,44 @@ def analyzetrade():
         pyautogui.moveTo(mouseX, mouseY)
         pyautogui.moveTo(mousex + offsetX, mouseY - offsetY, 1)
         pyautogui.click(1325, 675)
-        exit(0)
+        y = 0
+        while y < 7:
+            sleep(3)
+            with mss.mss() as sct:
+                monitor = {"top": 520, "left": 1170, "width": 180, "height": 135}
+                img = sct.grab(monitor)
+                mss.tools.to_png(img.rgb, img.size, output="lab/realtrade.png")
+                engine = Main()
+                engine.run("lab/potion.png", "lab/realtrade.png")
+                f = []
+                for (dirpath, dirnames, filenames) in walk("lab/trade_potions"):
+                    f.extend(filenames)
+                    break
+                if f:
+                    for file in f:
+                        output = engine.scan("lab/trade_potions/{}".format(file))
+                        print("Trade in --> {}".format(output))
+                        tradein_potions.append(output)
+                if output:
+                    return tradein_potions
+                    check = False
+                y += 1
+
+
+def selectpotion(potions, potionz):
+    mouseX = 1161
+    mouseY = 460
+    weight = 100
+    try:
+        potion = potions[potionz]
+        tradeX = mouseX + potion[0]
+        tradeY = mouseY + potion[1]
+        pyautogui.moveTo(tradeX, tradeY, 1)
+        pyautogui.moveTo(tradeX, tradeY - weight, 1)
+        pyautogui.click(tradeX, tradeY - weight)
+        return True
+    except Exception as e:
+        return False
 
 
 def analyzeimage():
@@ -118,31 +201,202 @@ def analyzeimage():
             i += 1
         return found_potions
 
-with mss.mss() as sct:
-    # Part of the screen to capture
-    mouseX = 1161
-    mouseY = 460
-    print("Press Q until I stop!\nBot started...")
-    quit = True
-    potion_results = analyzeimage()
-    print(potion_results)
-    exit(0)
-    potions = ["attack", "vitdex", "defense", "mana", "speed", "wisdom"]
-    while quit:
-        try:
-            if keyboard.is_pressed('q'):
-                quit = False
-        except Exception:
-            pass
-        # pyautogui.moveTo(mouseX, mouseY)
-        monitor = {"top": 460, "left": 1160, "width": 197, "height": 114}
-        # potion = potion_results[potions[0]]
-        # try:
-        #     value = randint(1, len(potions)-1)
-        #     topotion = potion_results[potions[value]]
-        #     pyautogui.moveTo(mouseX + potion[0], mouseY + potion[1])
-        #     pyautogui.dragTo(mouseX + topotion[0], mouseY + topotion[1], 0.5)
-        # except Exception:
-        #     print("Not fount {}".format(potions[value]))
-        # exit(0)
-        analyzetrade()
+
+if __name__ == "__main__":
+    with mss.mss() as sct:
+        # Part of the screen to capture
+        with open("username.txt", "r") as txt:
+            username = txt.read()
+        mouseX = 1161
+        mouseY = 460
+        print("Press Q until I stop!\nBot started...")
+        sleep(5)
+        quit = True
+        potion_results = analyzeimage()
+        potions = ["attack", "vitdex", "defense", "mana", "speed", "wisdom"]
+        while quit:
+            folder = 'lab/trade_potions'
+            for the_file in os.listdir(folder):
+                file_path = os.path.join(folder, the_file)
+                try:
+                    if os.path.isfile(file_path):
+                        os.unlink(file_path)
+                    # elif os.path.isdir(file_path): shutil.rmtree(file_path)
+                except Exception:
+                    pass
+            try:
+                if keyboard.is_pressed('q'):
+                    quit = False
+                    print("Quitting...")
+            except Exception:
+                pass
+            # pyautogui.moveTo(mouseX, mouseY)
+            monitor = {"top": 460, "left": 1160, "width": 197, "height": 114}
+            word = ""
+            try:
+                potion_results["life"]
+                word = "LIFE"
+            except Exception:
+                pass
+            try:
+                potion_results["defense"]
+                word = "DEFENSE"
+            except Exception:
+                pass
+            try:
+                potion_results["attack"]
+                word = "ATTACK"
+            except Exception:
+                pass
+            pyautogui.press("enter")
+            sleep(0.2)
+            pyautogui.typewrite("SELLING {}: {} SELLING {}: {} SELLING {}: {} SELLING {}: {} SELLING {}: {} SELLING {}:"
+                                " {} SELLING {}: {} SELLING "
+                                "{}: {}".format(word, username, word, username, word, username, word, username, word, username, word, username, word, username, word, username))
+            pyautogui.press("enter")
+            # potion = potion_results[potions[0]]
+            # try:
+            #     value = randint(1, len(potions)-1)
+            #     topotion = potion_results[potions[value]]
+            #     pyautogui.moveTo(mouseX + potion[0], mouseY + potion[1])
+            #     pyautogui.dragTo(mouseX + topotion[0], mouseY + topotion[1], 0.5)
+            # except Exception:
+            #     print("Not fount {}".format(potions[value]))
+            # exit(0)
+            tradein = analyzetrade()
+            if tradein:
+                cnt = Counter()
+                cntcheck = Counter()
+                weight = 100
+                print("Trading...")
+                print(len(tradein))
+                for potion in tradein:
+                    cnt[potion] += 1
+
+                if len(tradein) >= 3 and not cnt["life"] and not cnt["mana"] and not cnt["defense"] and not cnt["attack"]:
+                    option1 = selectpotion(potion_results, "defense")
+                    if not option1:
+                        option2 = selectpotion(potion_results, "attack")
+                    if option2 or option1:
+                        sleep(1)
+                        tradecheck = doublecheck()
+                        print("Confirming...")
+                        for potion in tradecheck:
+                            cntcheck[potion] += 1
+                        if len(tradecheck) >= 3 and not cnt["life"] and not cnt["mana"] and not cnt["defense"] and not cnt["attack"]:
+                            x = 0
+                            while x != 10:
+                                sleep(2)
+                                confirmation = accept()
+                                if confirmation:
+                                    print("Confirmed")
+                                    mousex = 1312
+                                    mouseY = 685
+                                    offsetX = 13
+                                    offsetY = 10
+                                    pyautogui.moveTo(mouseX, mouseY)
+                                    pyautogui.moveTo(mousex + offsetX, mouseY - offsetY, 1)
+                                    pyautogui.click(1325, 675)
+                                    sleep(3)
+                                    pyautogui.moveTo(mouseX, mouseY)
+                                    pyautogui.moveTo(mousex + offsetX, mouseY - offsetY, 1)
+                                    pyautogui.click(1325, 675)
+                                    x = 9
+                                x += 1
+
+                if cnt["life"] == 1:
+                    selectpotion(potion_results, "vitdex")
+                    selectpotion(potion_results, "speed")
+                    selectpotion(potion_results, "wisdom")
+                    selectpotion(potion_results, "defense")
+                    sleep(1)
+
+                    tradecheck = doublecheck()
+                    print("Confirming...")
+                    for potion in tradecheck:
+                        cntcheck[potion] += 1
+                    if cntcheck["life"] == 1:
+                        x = 0
+                        while x != 10:
+                            sleep(2)
+                            confirmation = accept()
+                            if confirmation:
+                                print("Confirmed")
+                                mousex = 1312
+                                mouseY = 685
+                                offsetX = 13
+                                offsetY = 10
+                                pyautogui.moveTo(mouseX, mouseY)
+                                pyautogui.moveTo(mousex + offsetX, mouseY - offsetY, 1)
+                                pyautogui.click(1325, 675)
+                                sleep(3)
+                                tradecheck = doublecheck()
+                                print("Confirming...")
+                                for potion in tradecheck:
+                                    cntcheck[potion] += 1
+                                if cntcheck["life"] == 1:
+                                    pyautogui.moveTo(mouseX, mouseY)
+                                    pyautogui.moveTo(mousex + offsetX, mouseY - offsetY, 1)
+                                    pyautogui.click(1325, 675)
+                                x = 9
+                            x += 1
+
+                if cnt["defense"] == 1 and len(tradein) == 1:
+                    selectpotion(potion_results, "speed")
+                    selectpotion(potion_results, "wisdom")
+                    selectpotion(potion_results, "vitdex")
+
+                    tradecheck = doublecheck()
+                    print("Confirming...")
+                    for potion in tradecheck:
+                        cntcheck[potion] += 1
+                    if cntcheck["defense"] == 1 and len(tradecheck) == 1:
+                        x = 0
+                        while x != 10:
+                            sleep(2)
+                            confirmation = accept()
+                            if confirmation:
+                                print("Confirmed")
+                                mousex = 1312
+                                mouseY = 685
+                                offsetX = 13
+                                offsetY = 10
+                                pyautogui.moveTo(mouseX, mouseY)
+                                pyautogui.moveTo(mousex + offsetX, mouseY - offsetY, 1)
+                                pyautogui.click(1325, 675)
+                                sleep(3)
+                                pyautogui.moveTo(mouseX, mouseY)
+                                pyautogui.moveTo(mousex + offsetX, mouseY - offsetY, 1)
+                                pyautogui.click(1325, 675)
+                                x = 9
+                            x += 1
+                if cnt["defense"] == 7 or cnt["defense"] >= 3 and cnt["attack"] >= 4:
+                    selectpotion(potion_results, "life")
+
+                    tradecheck = doublecheck()
+                    print("Confirming...")
+                    for potion in tradecheck:
+                        cntcheck[potion] += 1
+                    if cntcheck["defense"] == 1 and len(tradecheck) == 1:
+                        x = 0
+                        while x != 10:
+                            sleep(2)
+                            confirmation = accept()
+                            if confirmation:
+                                print("Confirmed")
+                                mousex = 1312
+                                mouseY = 685
+                                offsetX = 13
+                                offsetY = 10
+                                pyautogui.moveTo(mouseX, mouseY)
+                                pyautogui.moveTo(mousex + offsetX, mouseY - offsetY, 1)
+                                pyautogui.click(1325, 675)
+                                sleep(3)
+                                pyautogui.moveTo(mouseX, mouseY)
+                                pyautogui.moveTo(mousex + offsetX, mouseY - offsetY, 1)
+                                pyautogui.click(1325, 675)
+                                x = 9
+                            x += 1
+
+
+
