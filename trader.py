@@ -227,27 +227,38 @@ if __name__ == "__main__":
             try:
                 if keyboard.is_pressed('q'):
                     quit = False
-                    print("Quitting...")
+                    print("Quitting...w")
             except Exception:
                 pass
             # pyautogui.moveTo(mouseX, mouseY)
             monitor = {"top": 460, "left": 1160, "width": 197, "height": 114}
             word = ""
+            buy = ""
             try:
                 potion_results["life"]
                 word = "LIFE"
+                buy = "6 DEF"
             except Exception:
                 pass
             try:
                 potion_results["defense"]
                 word = "DEFENSE"
+                buy = "LIFE"
             except Exception:
                 pass
             try:
                 potion_results["attack"]
                 word = "ATTACK"
+                buy = "1 DEF"
             except Exception:
                 pass
+            try:
+                potion_results["speed"]
+                word = "SPEED"
+                buy = "1 DEF"
+            except Exception:
+                pass
+
             pyautogui.press("enter")
             sleep(0.2)
             pyautogui.typewrite("SELLING {}: {} SELLING {}: {} SELLING {}: {} SELLING {}: {} SELLING {}: {} SELLING {}:"
@@ -272,6 +283,47 @@ if __name__ == "__main__":
                 print(len(tradein))
                 for potion in tradein:
                     cnt[potion] += 1
+
+                # This is where you can add your own rules
+
+                # ------------------------
+
+                if cnt["life"] == 1:
+                    selectpotion(potion_results, "vitdex")
+                    selectpotion(potion_results, "speed")
+                    selectpotion(potion_results, "wisdom")
+                    selectpotion(potion_results, "defense")
+                    sleep(1)
+
+                    tradecheck = doublecheck()
+                    print("Confirming...")
+                    for potion in tradecheck:
+                        cntcheck[potion] += 1
+                    if cntcheck["life"] == 1:
+                        x = 0
+                        while x != 10:
+                            sleep(2)
+                            confirmation = accept()
+                            if confirmation:
+                                print("Confirmed")
+                                mousex = 1312
+                                mouseY = 685
+                                offsetX = 13
+                                offsetY = 10
+                                pyautogui.moveTo(mouseX, mouseY)
+                                pyautogui.moveTo(mousex + offsetX, mouseY - offsetY, 1)
+                                pyautogui.click(1325, 675)
+                                sleep(3)
+                                tradecheck = doublecheck()
+                                print("Confirming...")
+                                for potion in tradecheck:
+                                    cntcheck[potion] += 1
+                                if cntcheck["life"] == 1:
+                                    pyautogui.moveTo(mouseX, mouseY)
+                                    pyautogui.moveTo(mousex + offsetX, mouseY - offsetY, 1)
+                                    pyautogui.click(1325, 675)
+                                x = 9
+                            x += 1
 
                 if len(tradein) >= 3 and not cnt["life"] and not cnt["mana"] and not cnt["defense"] and not cnt["attack"]:
                     option1 = selectpotion(potion_results, "defense")
