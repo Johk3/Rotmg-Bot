@@ -8,6 +8,7 @@ class ColorLabeler:
     def __init__(self):
         # initialize the colors dictionary, containing the color
         # name as the key and the RGB tuple as the value
+        # old speed 9, 142, 61
         colors = OrderedDict({
             "vitality": (253, 5, 42),
             "speed": (9, 142, 61),
@@ -33,7 +34,7 @@ class ColorLabeler:
         # to L*a*b*
         self.lab = cv2.cvtColor(self.lab, cv2.COLOR_RGB2LAB)
 
-    def label(self, image, c):
+    def label(self, image, c, nonetype=None):
         # construct a mask for the contour, then compute the
         # average L*a*b* value for the masked region
         mask = np.zeros(image.shape[:2], dtype="uint8")
@@ -62,7 +63,9 @@ class ColorLabeler:
             if int(d) == 119 or int(d) == 53:
                 return "speed"
 
-            if int(d) == 106 or int(d) == 107:
+            if int(d) == 106 or int(d) == 107 or int(d) == 130:
+                if nonetype:
+                    return "empty"
                 return None
 
             if d < minDist[0]:

@@ -3,3 +3,5 @@
 3. Make sure that the website is not in fullscreen mode "F11" or in a smaller mode, the zoom has to be 100%.
 4. Dont click anywhere else when the program is still running, make sure to turn it off first by pressing Q.
 5. Make sure your username is in the username.txt folder.
+6. Make sure your screen is not rotated or rotating, it needs to be in the default angle.
+7. Position the character in the middle of the map, or so that he doesnt go to the water while trying to go up or down.
