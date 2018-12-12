@@ -14,7 +14,6 @@ from lab.tradeanalyzer import Main
 from collections import Counter
 import os, shutil
 from collections import defaultdict
-import datetime
 
 pyautogui.FAILSAFE = False
 
@@ -25,8 +24,13 @@ def tovault(potions, chosenpotion):
     offsetY = 10
     mouseX = 1161
     maxmove = 3
+    print("Vaulting...")
+    zeamount = 0
+    for key, value in potions.items():
+        zeamount += len(value)
 
-    if len(potions) <= 6:
+    if zeamount <= 6:
+        print("Not enough potions")
         return False
 
     sleep(2)
@@ -139,7 +143,6 @@ def tovault(potions, chosenpotion):
             zecounter = 0
             for empty, value in found_spots.items():
                 zecounter += len(value)
-
             if zecounter >= 1:
                 for potionz, value in potionzee.items():
                     mouseX = 1161
@@ -230,7 +233,6 @@ def doublecheck():
     tradein_potions = []
     output = None
     x = 0
-    x += 1
     while x < 8:
         sleep(2)
         folder = 'lab/trade_potions'
@@ -254,12 +256,12 @@ def doublecheck():
                 break
             if f:
                 for file in f:
-                    t = datetime.datetime.now().strftime("%H:%M:%S")
                     output = engine.scan("lab/trade_potions/{}".format(file))
-                    print("Trade in --> {}\n-- {} --".format(output, t))
+                    print("Trade in --> {}".format(output))
                     tradein_potions.append(output)
             if output:
                 return tradein_potions
+        x += 1
     return False
 
 def transaction(potion_results, cnt, cntpotion, cntis, potion, potionlooptime, multiplepotions = None, multiplecntpotions = None):
@@ -269,43 +271,43 @@ def transaction(potion_results, cnt, cntpotion, cntis, potion, potionlooptime, m
     offsetX = 13
     offsetY = 10
 
-    if multiplepotions:
-        cntis = 0
-        for key, value in multiplepotions.items():
-            selectpotion(potion_results, key, 1)
-        for key, value in cnt.items():
-            cntis += value
-        sleep(2)
-        tradecheck = doublecheck()
-        if not tradecheck:
-            print("Tradecheck not found")
-            return False
-        x = 0
-        while x != 10:
-            sleep(2)
-            confirmation = accept()
-            if confirmation:
-                print("Confirmed")
-                sleep(1)
-                tradecheck = doublecheck()
-                if not tradecheck:
-                    return False
-                print("Doublechecking...")
-                cntcheck = Counter()
-                for potion in tradecheck:
-                    cntcheck[potion] += 1
-                if cntis == cntcheck[cntpotion] or cntcheck[cntpotion] == cntis + 1:
-                    pyautogui.moveTo(mouseX, mouseY)
-                    pyautogui.moveTo(mousex + offsetX, mouseY - offsetY, 0.2)
-                    pyautogui.click(1325, 675)
-                    return True
-                else:
-                    pyautogui.moveTo(mouseX, mouseY)
-                    pyautogui.moveTo(mousex - 100, mouseY - offsetY, 1)
-                    pyautogui.click(1325 - 100, 675)
-                    return False
-            x = 9
-        x += 1
+    # if multiplepotions:
+    #     cntis = 0
+    #     for key, value in multiplepotions.items():
+    #         selectpotion(potion_results, key, 1)
+    #     for key, value in cnt.items():
+    #         cntis += value
+    #     sleep(2)
+    #     tradecheck = doublecheck()
+    #     if not tradecheck:
+    #         print("Tradecheck not found")
+    #         return False
+    #     x = 0
+    #     while x != 10:
+    #         sleep(2)
+    #         confirmation = accept()
+    #         if confirmation:
+    #             print("Confirmed")
+    #             sleep(1)
+    #             tradecheck = doublecheck()
+    #             if not tradecheck:
+    #                 return False
+    #             print("Doublechecking...")
+    #             cntcheck = Counter()
+    #             for potion in tradecheck:
+    #                 cntcheck[potion] += 1
+    #             if cntis == cntcheck[cntpotion] or cntcheck[cntpotion] == cntis + 1:
+    #                 pyautogui.moveTo(mouseX, mouseY)
+    #                 pyautogui.moveTo(mousex + offsetX, mouseY - offsetY, 0.2)
+    #                 pyautogui.click(1325, 675)
+    #                 return True
+    #             else:
+    #                 pyautogui.moveTo(mouseX, mouseY)
+    #                 pyautogui.moveTo(mousex - 100, mouseY - offsetY, 1)
+    #                 pyautogui.click(1325 - 100, 675)
+    #                 return False
+    #         x = 9
+    #     x += 1
 
     if multiplecntpotions:
         for key, value in multiplecntpotions.items():
@@ -350,6 +352,8 @@ def transaction(potion_results, cnt, cntpotion, cntis, potion, potionlooptime, m
                         while x != 10:
                             sleep(2)
                             confirmation = accept()
+                            if not confirmation:
+                                return False
                             if confirmation:
                                 print("Confirmed")
                                 sleep(1)
@@ -366,16 +370,52 @@ def transaction(potion_results, cnt, cntpotion, cntis, potion, potionlooptime, m
                                     pyautogui.click(1325, 675)
                                     return True
                                 else:
-                                    return False
-                            else:
-                                return False
+                                    sleep(1)
+                                    with mss.mss() as sct:
+                                        monitor = {"top": 662, "left": 1272, "width": 70, "height": 34}
+                                        img = sct.grab(monitor)
+                                        mss.tools.to_png(img.rgb, img.size, output="trade.png")
+                                        color = find_trade("trade.png")
+                                    if color:
+                                        return "active"
+                                    if not color:
+                                        return "deactive"
                             x = 9
                         x += 1
+                    else:
+                        sleep(1)
+                        with mss.mss() as sct:
+                            monitor = {"top": 662, "left": 1272, "width": 70, "height": 34}
+                            img = sct.grab(monitor)
+                            mss.tools.to_png(img.rgb, img.size, output="trade.png")
+                            color = find_trade("trade.png")
+                        if color:
+                            return "active"
+                        if not color:
+                            return "deactive"
             else:
-                pass
+                sleep(1)
+                with mss.mss() as sct:
+                    monitor = {"top": 662, "left": 1272, "width": 70, "height": 34}
+                    img = sct.grab(monitor)
+                    mss.tools.to_png(img.rgb, img.size, output="trade.png")
+                    color = find_trade("trade.png")
+                if color:
+                    return "active"
+                if not color:
+                    return "deactive"
 
     else:
-        pass
+        sleep(1)
+        with mss.mss() as sct:
+            monitor = {"top": 662, "left": 1272, "width": 70, "height": 34}
+            img = sct.grab(monitor)
+            mss.tools.to_png(img.rgb, img.size, output="trade.png")
+            color = find_trade("trade.png")
+        if color:
+            return "active"
+        if not color:
+            return "deactive"
 
 
     if cntis <= cnt[cntpotion] <= cntis + 1:
@@ -421,29 +461,53 @@ def transaction(potion_results, cnt, cntpotion, cntis, potion, potionlooptime, m
                         sleep(1)
                         tradecheck = doublecheck()
                         if not tradecheck:
-                            print("No tradecheck")
                             return False
                         print("Doublechecking...")
                         cntcheck = Counter()
                         for potion in tradecheck:
                             cntcheck[potion] += 1
-                        if cntis <= cntcheck[cntpotion] <= cntis + 1:
+                        if cntcheck[potion] == cntis:
                             pyautogui.moveTo(mouseX, mouseY)
                             pyautogui.moveTo(mousex + offsetX, mouseY - offsetY, 0.2)
                             pyautogui.click(1325, 675)
                             return True
                         else:
-                            pyautogui.moveTo(mouseX, mouseY)
-                            pyautogui.moveTo(mousex - 100, mouseY - offsetY, 1)
-                            pyautogui.click(1325 - 100, 675)
+                            sleep(1)
+                            with mss.mss() as sct:
+                                monitor = {"top": 662, "left": 1272, "width": 70, "height": 34}
+                                img = sct.grab(monitor)
+                                mss.tools.to_png(img.rgb, img.size, output="trade.png")
+                                color = find_trade("trade.png")
+                            if color:
+                                return "active"
+                            if not color:
+                                return "deactive"
                             return False
                     x = 9
                 x += 1
+            else:
+                sleep(1)
+                with mss.mss() as sct:
+                    monitor = {"top": 662, "left": 1272, "width": 70, "height": 34}
+                    img = sct.grab(monitor)
+                    mss.tools.to_png(img.rgb, img.size, output="trade.png")
+                    color = find_trade("trade.png")
+                if color:
+                    return "active"
+                if not color:
+                    return "deactive"
+
         else:
-            pyautogui.moveTo(mouseX, mouseY)
-            pyautogui.moveTo(mousex - 100, mouseY - offsetY, 1)
-            pyautogui.click(1325 - 100, 675)
-            return False
+            sleep(1)
+            with mss.mss() as sct:
+                monitor = {"top": 662, "left": 1272, "width": 70, "height": 34}
+                img = sct.grab(monitor)
+                mss.tools.to_png(img.rgb, img.size, output="trade.png")
+                color = find_trade("trade.png")
+            if color:
+                return "active"
+            if not color:
+                return "deactive"
 
 def accept():
     with mss.mss() as sct:
@@ -515,9 +579,8 @@ def analyzetrade():
                     break
                 if f:
                     for file in f:
-                        t = datetime.datetime.now().strftime("%H:%M:%S")
                         output = engine.scan("lab/trade_potions/{}".format(file))
-                        print("Trade in --> {}\n-- {} --".format(output, t))
+                        print("Trade in --> {}".format(output))
                         tradein_potions.append(output)
                 if output:
                     return tradein_potions
@@ -618,11 +681,13 @@ def analyzeimage():
 
 if __name__ == "__main__":
     print("Starting...")
+    tradein = None
     sleep(2)
-    pyautogui.press('z')
-    pyautogui.keyDown('s')
-    sleep(5.5)
-    pyautogui.keyUp('s')
+    tradeactive = False
+    # pyautogui.press('z')
+    # pyautogui.keyDown('s')
+    # sleep(5.5)
+    # pyautogui.keyUp('s')
     with mss.mss() as sct:
         # Part of the screen to capture
         with open("username.txt", "r") as txt:
@@ -647,8 +712,8 @@ if __name__ == "__main__":
         zecheck = True
         for potion, value in potion_results.items():
             zeresult += len(value)
-        if zeresult >= 6:
-            if potion_results["life"] and zecheck:
+        if zeresult >= 7:
+            if potion_results["vitdex"] and zecheck:
                 potionzee = defaultdict(list)
                 potionzee["defense"].append(5)
                 potionzee["wisdom"].append(5)
@@ -664,11 +729,20 @@ if __name__ == "__main__":
                 potionzee["speed"].append(5)
                 potionzee["vitdex"].append(5)
                 tovault(potion_results, potionzee)
+                zecheck = False
             if len(potion_results["defense"]) >= 6 and zecheck or len(potion_results["attack"]) >= 6 and zecheck:
                 potionzee = defaultdict(list)
                 potionzee["attack"].append(2)
                 potionzee["defense"].append(2)
                 tovault(potion_results, potionzee)
+                zecheck = False
+            if len(potion_results["defense"]) >= 2 and zecheck or len(potion_results["attack"]) >= 2 and zecheck:
+                potionzee = defaultdict(list)
+                potionzee["wisdom"].append(3)
+                potionzee["speed"].append(3)
+                potionzee["vitdex"].append(3)
+                tovault(potion_results, potionzee)
+                zecheck = False
             if zecheck:
                 tovault(potion_results, potionzee)
         while quit:
@@ -747,7 +821,7 @@ if __name__ == "__main__":
                         sellcheck = True
                     if not sellcheck and 1 <= len(potion_results["defense"]) <= 1:
                         word = "DEFENSE"
-                        buy = "3 SPD/DEX/VIT/WIS"
+                        buy = "4 SPD/DEX/VIT/WIS"
                         sellcheck = True
                 if potion_results["mana"]:
                     if not sellcheck:
@@ -786,22 +860,25 @@ if __name__ == "__main__":
                 if potion_results["mana"]:
                     word = "MANA"
                     buy = "3 DEF"
-            pyautogui.press("enter")
-            sleep(0.2)
-            pyautogui.typewrite("  [S] {} TRADE: {} [B] > {}   [S] > {} TRADE: {} [B] > {}".format(word, username, buy, word, username, buy))
-            pyautogui.press("enter")
-            potion = potion_results[potions[0]]
+            # pyautogui.press("enter")
+            # sleep(0.15)
+            # pyautogui.typewrite("  [S] {} TRADE: {} [B] > {}   [S] > {} TRADE: {} [B] > {}".format(word, username, buy, word, username, buy))
+            # pyautogui.press("enter")
+            # potion = potion_results[potions[0]]
             # try:
             #     value = randint(1, len(potions)-1)
             #     topotion = potion_results[potions[value]]
             #     pyautogui.moveTo(mouseX + potion[0], mouseY + potion[1])
-            #     pyautogui.dragTo(mouseX + topotion[0], mouseY + topotion[1], 0.5)
+            #     pyautogui.dragTo(mouseX + topotio
+            # n[0], mouseY + topotion[1], 0.5)
             # except Exception:
             #     print("Not fount {}".format(potions[value]))
             # exit(0)
-            tradein = analyzetrade()
-            if tradein:
-                sleep(3)
+            if extracheck:
+                tradein = analyzetrade()
+                print("Trade processed")
+            if tradein or tradeactive:
+                sleep(1)
                 cnt = Counter()
                 cntcheck = Counter()
                 weight = 100
@@ -814,6 +891,8 @@ if __name__ == "__main__":
                 offsetX = 13
                 offsetY = 10
                 outputcheck = False
+                if tradeactive:
+                    print("Trade active")
 
                 # This is where you can add your own rules
                 # if you uncomment the line of code that is below this text you can make some rules for the bot
@@ -907,12 +986,17 @@ if __name__ == "__main__":
                             output = transaction(potion_results, cnt, "attack", 1, foundpotion, 1, multiplepotions)
 
                     if output:
-                        outputcheck = True
-                        print("Successful Transaction")
+                        if output == "deactive":
+                            tradeactive = False
+                        if output == "active":
+                            tradeactive = True
+                        if output == True:
+                            outputcheck = True
+                            print("Successful Transaction")
 
 
                 if not outputcheck and not cnt["life"] and not cnt["defense"] and not cnt["mana"] and not cnt["attack"]:
-                    if len(cnt) >= 3:
+                    if len(cnt) >= 4:
                         if cnt["speed"]:
                             word = "speed"
                             price = cnt["speed"]
@@ -930,8 +1014,13 @@ if __name__ == "__main__":
                             output = transaction(potion_results, cnt, word, price, "defense", 1)
 
                     if output:
-                        outputcheck = True
-                        print("Successful Transaction")
+                        if output == "deactive":
+                            tradeactive = False
+                        if output == "active":
+                            tradeactive = True
+                        if output == True:
+                            outputcheck = True
+                            print("Successful Transaction")
 
 
                 if not outputcheck and not cnt["life"] and cnt["defense"] == 1 and not cnt["mana"] or not outputcheck and cnt["attack"]:
@@ -963,8 +1052,13 @@ if __name__ == "__main__":
                                 output = transaction(potion_results, cnt, "defense", 1, word, 3)
 
                     if output:
-                        outputcheck = True
-                        print("Successful Transaction")
+                        if output == "deactive":
+                            tradeactive = False
+                        if output == "active":
+                            tradeactive = True
+                        if output == True:
+                            outputcheck = True
+                            print("Successful Transaction")
 
                 if not outputcheck:
                     if cnt["attack"] >= 3:
@@ -973,8 +1067,13 @@ if __name__ == "__main__":
                         output = transaction(potion_results, cnt, "defense", 3, "mana", 1)
 
                     if output:
-                        outputcheck = True
-                        print("Successful Transaction")
+                        if output == "deactive":
+                            tradeactive = False
+                        if output == "active":
+                            tradeactive = True
+                        if output == True:
+                            outputcheck = True
+                            print("Successful Transaction")
 
                 if not outputcheck and cnt["life"] == 1:
                     if len(potion_results["attack"]) >= 4:
@@ -983,8 +1082,13 @@ if __name__ == "__main__":
                         output = transaction(potion_results, cnt, "life", 1, "defense", 5)
 
                     if output:
-                        outputcheck = True
-                        print("Successful Transaction")
+                        if output == "deactive":
+                            tradeactive = False
+                        if output == "active":
+                            tradeactive = True
+                        if output == True:
+                            outputcheck = True
+                            print("Successful Transaction")
 
                 if not outputcheck and cnt["mana"]:
                     if len(potion_results["attack"]) >= 2:
@@ -993,8 +1097,13 @@ if __name__ == "__main__":
                         output = transaction(potion_results, cnt, "mana", 1, "defense", 2)
 
                     if output:
-                        outputcheck = True
-                        print("Successful Transaction")
+                        if output == "deactive":
+                            tradeactive = False
+                        if output == "active":
+                            tradeactive = True
+                        if output == True:
+                            outputcheck = True
+                            print("Successful Transaction")
 
                 if not outputcheck and cnt["life"] and len(cnt) >= 3:
                     if len(potion_results["attack"]) >= 5:
@@ -1003,8 +1112,13 @@ if __name__ == "__main__":
                         output = transaction(potion_results, cnt, "life", 1, "defense", 5)
 
                     if output:
-                        outputcheck = True
-                        print("Successful Transaction")
+                        if output == "deactive":
+                            tradeactive = False
+                        if output == "active":
+                            tradeactive = True
+                        if output == True:
+                            outputcheck = True
+                            print("Successful Transaction")
 
                 if not outputcheck and cnt["mana"] and len(cnt) >= 3:
                     if len(potion_results["attack"]) >= 3:
@@ -1013,8 +1127,13 @@ if __name__ == "__main__":
                         output = transaction(potion_results, cnt, "mana", 1, "defense", 3)
 
                     if output:
-                        outputcheck = True
-                        print("Successful Transaction")
+                        if output == "deactive":
+                            tradeactive = False
+                        if output == "active":
+                            tradeactive = True
+                        if output == True:
+                            outputcheck = True
+                            print("Successful Transaction")
 
                 if not outputcheck and cnt["life"]:
                     if len(potion_results["attack"]) >= 5:
@@ -1025,33 +1144,54 @@ if __name__ == "__main__":
                         output = transaction(potion_results, cnt, "life", 1, "mana", 3)
 
                     if output:
-                        outputcheck = True
-                        print("Successful Transaction")
+                        if output == "deactive":
+                            tradeactive = False
+                        if output == "active":
+                            tradeactive = True
+                        if output == True:
+                            outputcheck = True
+                            print("Successful Transaction")
 
                 if not outputcheck:
                     if potion_results["mana"]:
                         output = transaction(potion_results, cnt, "mana", 1, "defense", 2)
 
                     if output:
-                        outputcheck = True
-                        print("Successful Transaction")
+                        if output == "deactive":
+                            tradeactive = False
+                        if output == "active":
+                            tradeactive = True
+                        if output == True:
+                            outputcheck = True
+                            print("Successful Transaction")
 
                 if not outputcheck:
                     if potion_results["attack"]:
                         output = transaction(potion_results, cnt, "defense", 1, "attack", 1)
 
                     if output:
-                        outputcheck = True
-                        print("Successful Transaction")
+                        if output == "deactive":
+                            tradeactive = False
+                        if output == "active":
+                            tradeactive = True
+                        if output == True:
+                            outputcheck = True
+                            print("Successful Transaction")
 
                 if not outputcheck:
                     multiplepotions = defaultdict(list)
                     multiplepotions["mana"].append(1)
                     multiplepotions["attack"].append(5)
                     output = transaction(potion_results, cnt, "life", 1, "defense", 5, multiplepotions)
+
                     if output:
-                        print("Successful Transaction")
-                        outputcheck = True
+                        if output == "deactive":
+                            tradeactive = False
+                        if output == "active":
+                            tradeactive = True
+                        if output == True:
+                            outputcheck = True
+                            print("Successful Transaction")
 
                 if not outputcheck:
                     multiplepotions = defaultdict(list)
@@ -1060,32 +1200,62 @@ if __name__ == "__main__":
                     multiplecntoptions["vitdex"].append(3)
                     multiplecntoptions["wisdom"].append(3)
                     output = transaction(potion_results, cnt, "speed", 3, "defense", 1, multiplepotions, multiplecntoptions)
+
                     if output:
-                        print("Successful Transaction")
-                        outputcheck = True
+                        if output == "deactive":
+                            tradeactive = False
+                        if output == "active":
+                            tradeactive = True
+                        if output == True:
+                            outputcheck = True
+                            print("Successful Transaction")
 
                 if not outputcheck and potion_results["life"] and potion_results["mana"]:
                     output = transaction(potion_results, cnt, "mana", 4, "life", 1)
+
                     if output:
-                        print("Successful Transaction")
-                        outputcheck = True
+                        if output == "deactive":
+                            tradeactive = False
+                        if output == "active":
+                            tradeactive = True
+                        if output == True:
+                            outputcheck = True
+                            print("Successful Transaction")
 
 
                 if not outputcheck and potion_results["life"]:
-                    if cnt["attack"] >= 6:
-                        output = transaction(potion_results, cnt, "attack", 6, "life", 1)
-                    if cnt["defense"] >= 6:
-                        output = transaction(potion_results, cnt, "defense", 6, "life", 1)
+                    if cnt["attack"] >= 5 and len(cnt) >= 6:
+                        output = transaction(potion_results, cnt, "attack", 5, "life", 1)
+                    if cnt["attack"] and cnt["defense"] and len(cnt) >= 6 and not cnt["speed"] and not cnt["wisdom"] and not cnt["vitdex"]:
+                        multiplecntoptions["defense"].append(3)
+                        multiplecntoptions["attack"].append(3)
+                        output = transaction(potion_results, cnt, "attack", 5, "life", 1)
+                    else:
+                        output = transaction(potion_results, cnt, "defense", 5, "life", 1)
+
                     if output:
-                        print("Successful Transaction")
-                        outputcheck = True
+                        if output == "deactive":
+                            tradeactive = False
+                        if output == "active":
+                            tradeactive = True
+                        if output == True:
+                            outputcheck = True
+                            print("Successful Transaction")
 
                 if not outputcheck and potion_results["life"]:
-                    if cnt["defense"] >= 6:
-                        output = transaction(potion_results, cnt, "defense", 6, "life", 1)
+                    if cnt["defense"] >= 5 and len(cnt) >= 6:
+                        output = transaction(potion_results, cnt, "defense", 5, "life", 1)
+                    else:
+                        output = transaction(potion_results, cnt, "defense", 5, "life", 1)
+
                     if output:
-                        print("Successful Transaction")
-                        outputcheck = True
+                        if output == "deactive":
+                            tradeactive = False
+                        if output == "active":
+                            tradeactive = True
+                        if output == True:
+                            outputcheck = True
+                            print("Successful Transaction")
 
                 if outputcheck:
                     extracheck = False

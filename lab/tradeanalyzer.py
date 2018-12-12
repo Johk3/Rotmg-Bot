@@ -1,12 +1,12 @@
 import cv2 as cv
+# import numpy as np
+# from scipy.spatial import distance as dist
+# from collections import OrderedDict
 import numpy as np
-from scipy.spatial import distance as dist
-from collections import OrderedDict
-import numpy as np
-import cv2
+# import cv2
 from PIL import Image
-from os import walk
-import imutils
+# from os import walk
+# import imutils
 
 
 class Main:

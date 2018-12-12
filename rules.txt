@@ -1,3 +1,16 @@
+-- IMPORTANT --
+Make sure you have python 3.7 downloaded and make sure to download these libraries:
+- pyautogui
+- opencv-python
+- mss
+- numpy
+- imutils
+- keyboard
+- scipy
+- pillow
+
+-- The file that you need to execute is the file called trader.py --
+
 1. When the bot starts you have 5 seconds to click on the rotmg website screen.
 2. Stop the bot by pressing Q
 3. Make sure that the website is not in fullscreen mode "F11" or in a smaller mode, the zoom has to be 100%.
@@ -5,3 +18,4 @@
 5. Make sure your username is in the username.txt folder.
 6. Make sure your screen is not rotated or rotating, it needs to be in the default angle.
 7. Position the character in the middle of the map, or so that he doesnt go to the water while trying to go up or down.
+8. Your nexus button should be set to R
