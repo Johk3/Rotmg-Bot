@@ -7,7 +7,7 @@
 This bot only trades potions, and it makes sure to trade them for a profit.
 Example: "Sell 1 life for 6 def, and buy 1 life for 5 def."
 
-![](header.png)
+![](trade.gif)
 
 ## Installation
 
